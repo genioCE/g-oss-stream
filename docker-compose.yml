@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command: ["redpanda","start","--overprovisioned","--smp","1","--memory","512M","--reserve-memory","0M","--node-id","0","--check=false","--kafka-addr","0.0.0.0:9092","--advertise-kafka-addr","redpanda:9092"]
+    ports: ["9092:9092"]
+  console:
+    image: redpandadata/console:latest
+    environment: [ "KAFKA_BROKERS=redpanda:9092" ]
+    ports: ["8080:8080"]
+    depends_on: [ redpanda ]
+  jobmanager:
+    image: flink:1.19-scala_2.12
+    ports: ["8082:8081"]
+    command: jobmanager
+    environment: [ "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager" ]
+  taskmanager:
+    image: flink:1.19-scala_2.12
+    command: taskmanager
+    environment: [ "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager" ]
+    depends_on: [ jobmanager ]
